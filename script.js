@@ -5,8 +5,23 @@ const startGameBtn = document.getElementById('startGameBtn');
 const howToPlayBtn = document.getElementById('howToPlayBtn');
 const instructions = document.getElementById('instructions');
 const restartBtn = document.getElementById('restartBtn');
+const scoreDisplay = document.getElementById('score');
+const timerDisplay = document.getElementById('timer');
+const gameOverText = document.getElementById('gameOver');
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-// Fail-safe loading screen
+// Sounds
+const coinSound = document.getElementById('coinSound');
+const gameOverSound = document.getElementById('gameOverSound');
+const bgMusic = document.getElementById('bgMusic');
+
+// Game vars
+let ball, coins, obstacles, score, bestScore = 0, timer, gameInterval, timerInterval;
+canvas.width = 400;
+canvas.height = 500;
+
+// === LOADING SCREEN FAIL-SAFE ===
 window.addEventListener('load', () => {
     setTimeout(() => {
         loadingScreen.style.display = 'none';
@@ -14,6 +29,7 @@ window.addEventListener('load', () => {
     }, 2500);
 });
 
+// === MENU BUTTONS ===
 howToPlayBtn.addEventListener('click', () => {
     instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
 });
@@ -21,10 +37,130 @@ howToPlayBtn.addEventListener('click', () => {
 startGameBtn.addEventListener('click', () => {
     mainMenu.style.display = 'none';
     gameContainer.style.display = 'block';
-    restartBtn.click();
+    startGame();
 });
 
-restartBtn.addEventListener('click', () => {
-    document.getElementById('score').innerText = "Score: 0 | Best: 0";
-    document.getElementById('timer').innerText = "Time: 30s";
+restartBtn.addEventListener('click', startGame);
+
+// === START GAME ===
+function startGame() {
+    score = 0;
+    timer = 30;
+    gameOverText.style.display = 'none';
+    ball = { x:200, y:400, r:15, speed:4, dx:0, dy:0 };
+    coins = [];
+    obstacles = [];
+    bgMusic.play();
+
+    // Generate objects
+    for (let i=0; i<5; i++) spawnCoin();
+    for (let i=0; i<3; i++) spawnObstacle();
+
+    clearInterval(gameInterval);
+    clearInterval(timerInterval);
+
+    timerInterval = setInterval(() => {
+        timer--;
+        if(timer <= 0) endGame();
+        timerDisplay.textContent = `Time: ${timer}s`;
+    }, 1000);
+
+    gameInterval = setInterval(updateGame, 1000/60);
+}
+
+function endGame() {
+    clearInterval(gameInterval);
+    clearInterval(timerInterval);
+    bgMusic.pause();
+    gameOverSound.play();
+    gameOverText.style.display = 'block';
+    if(score > bestScore) bestScore = score;
+}
+
+// === GAME LOOP ===
+function updateGame() {
+    // Move ball
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+
+    // Boundaries
+    if(ball.x - ball.r < 0) ball.x = ball.r;
+    if(ball.x + ball.r > canvas.width) ball.x = canvas.width - ball.r;
+    if(ball.y - ball.r < 0) ball.y = ball.r;
+    if(ball.y + ball.r > canvas.height) ball.y = canvas.height - ball.r;
+
+    // Check coins
+    coins.forEach((c, i) => {
+        if(Math.hypot(ball.x - c.x, ball.y - c.y) < ball.r + c.r){
+            coins.splice(i,1);
+            score += 10;
+            timer += 4;
+            coinSound.play();
+            spawnCoin();
+        }
+    });
+
+    // Check obstacles
+    obstacles.forEach(o => {
+        if(ball.x + ball.r > o.x && ball.x - ball.r < o.x+o.w &&
+           ball.y + ball.r > o.y && ball.y - ball.r < o.y+o.h){
+            endGame();
+        }
+    });
+
+    scoreDisplay.textContent = `Score: ${score} | Best: ${bestScore}`;
+    drawGame();
+}
+
+function drawGame(){
+    ctx.fillStyle = '#222';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // Ball
+    ctx.fillStyle = 'red';
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+    ctx.fill();
+
+    // Coins
+    ctx.fillStyle = 'yellow';
+    coins.forEach(c=>{
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI*2);
+        ctx.fill();
+    });
+
+    // Obstacles
+    ctx.fillStyle = 'green';
+    obstacles.forEach(o=>{
+        ctx.fillRect(o.x,o.y,o.w,o.h);
+    });
+}
+
+function spawnCoin(){
+    coins.push({ x:Math.random()*360+20, y:Math.random()*460+20, r:10 });
+}
+function spawnObstacle(){
+    obstacles.push({ x:Math.random()*300, y:Math.random()*400, w:80, h:20 });
+}
+
+// === CONTROLS ===
+document.addEventListener('keydown', e=>{
+    if(e.key==='ArrowUp') ball.dy=-ball.speed;
+    if(e.key==='ArrowDown') ball.dy=ball.speed;
+    if(e.key==='ArrowLeft') ball.dx=-ball.speed;
+    if(e.key==='ArrowRight') ball.dx=ball.speed;
+});
+document.addEventListener('keyup', e=>{
+    if(['ArrowUp','ArrowDown'].includes(e.key)) ball.dy=0;
+    if(['ArrowLeft','ArrowRight'].includes(e.key)) ball.dx=0;
+});
+
+// Touch buttons
+document.getElementById('upBtn').ontouchstart=()=>ball.dy=-ball.speed;
+document.getElementById('downBtn').ontouchstart=()=>ball.dy=ball.speed;
+document.getElementById('leftBtn').ontouchstart=()=>ball.dx=-ball.speed;
+document.getElementById('rightBtn').ontouchstart=()=>ball.dx=ball.speed;
+document.querySelectorAll('.control-btn').forEach(btn=>{
+    btn.ontouchend=()=>{ball.dx=0; ball.dy=0;}
 });
