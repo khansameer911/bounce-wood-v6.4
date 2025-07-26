@@ -89,6 +89,14 @@ function updateGame() {
     if(ball.y - ball.r < 0) ball.y = ball.r;
     if(ball.y + ball.r > canvas.height) ball.y = canvas.height - ball.r;
 
+    // Move obstacles
+    obstacles.forEach(o => {
+        o.x += o.dx;
+        o.y += o.dy;
+        if(o.x <= 0 || o.x + o.w >= canvas.width) o.dx *= -1;
+        if(o.y <= 0 || o.y + o.h >= canvas.height) o.dy *= -1;
+    });
+
     // Check coins
     coins.forEach((c, i) => {
         if(Math.hypot(ball.x - c.x, ball.y - c.y) < ball.r + c.r){
@@ -140,8 +148,10 @@ function drawGame(){
 function spawnCoin(){
     coins.push({ x:Math.random()*360+20, y:Math.random()*460+20, r:10 });
 }
+
 function spawnObstacle(){
-    obstacles.push({ x:Math.random()*300, y:Math.random()*400, w:80, h:20 });
+    let dir = Math.random()<0.5 ? {dx:2, dy:0} : {dx:0, dy:2}; 
+    obstacles.push({ x:Math.random()*300, y:Math.random()*400, w:80, h:20, dx:dir.dx, dy:dir.dy });
 }
 
 // === CONTROLS ===
