@@ -16,12 +16,25 @@ const coinSound = document.getElementById('coinSound');
 const gameOverSound = document.getElementById('gameOverSound');
 const bgMusic = document.getElementById('bgMusic');
 
+// Load Best Score from localStorage
+let bestScore = localStorage.getItem("bouncewood_best") || 0;
+
 // Game vars
-let ball, coins, obstacles, score, bestScore = 0, timer, gameInterval, timerInterval;
+let ball, coins, obstacles, score, timer, gameInterval, timerInterval;
 canvas.width = 400;
 canvas.height = 500;
 
-// === LOADING SCREEN FAIL-SAFE ===
+// Load Images
+const bgImg = new Image();
+bgImg.src = "background.png";
+const ballImg = new Image();
+ballImg.src = "ball.png";
+const coinImg = new Image();
+coinImg.src = "coin.png";
+const obsImg = new Image();
+obsImg.src = "obstacle.png";
+
+// === LOADING SCREEN ===
 window.addEventListener('load', () => {
     setTimeout(() => {
         loadingScreen.style.display = 'none';
@@ -47,12 +60,11 @@ function startGame() {
     score = 0;
     timer = 30;
     gameOverText.style.display = 'none';
-    ball = { x:200, y:400, r:15, speed:4, dx:0, dy:0 };
+    ball = { x:200, y:400, r:20, speed:4, dx:0, dy:0 };
     coins = [];
     obstacles = [];
     bgMusic.play();
 
-    // Generate objects
     for (let i=0; i<5; i++) spawnCoin();
     for (let i=0; i<3; i++) spawnObstacle();
 
@@ -74,12 +86,15 @@ function endGame() {
     bgMusic.pause();
     gameOverSound.play();
     gameOverText.style.display = 'block';
-    if(score > bestScore) bestScore = score;
+
+    if(score > bestScore) {
+        bestScore = score;
+        localStorage.setItem("bouncewood_best", bestScore);
+    }
 }
 
 // === GAME LOOP ===
 function updateGame() {
-    // Move ball
     ball.x += ball.dx;
     ball.y += ball.dy;
 
@@ -120,33 +135,51 @@ function updateGame() {
     drawGame();
 }
 
+// === DRAW GAME ===
 function drawGame(){
-    ctx.fillStyle = '#222';
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+    // Background
+    if(bgImg.complete) {
+        ctx.drawImage(bgImg,0,0,canvas.width,canvas.height);
+    } else {
+        ctx.fillStyle = '#222';
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+    }
 
     // Ball
-    ctx.fillStyle = 'red';
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
-    ctx.fill();
+    if(ballImg.complete){
+        ctx.drawImage(ballImg, ball.x - ball.r, ball.y - ball.r, ball.r*2, ball.r*2);
+    } else {
+        ctx.fillStyle = 'red';
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+        ctx.fill();
+    }
 
     // Coins
-    ctx.fillStyle = 'yellow';
     coins.forEach(c=>{
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, c.r, 0, Math.PI*2);
-        ctx.fill();
+        if(coinImg.complete){
+            ctx.drawImage(coinImg, c.x - c.r, c.y - c.r, c.r*2, c.r*2);
+        } else {
+            ctx.fillStyle = 'yellow';
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, c.r, 0, Math.PI*2);
+            ctx.fill();
+        }
     });
 
     // Obstacles
-    ctx.fillStyle = 'green';
     obstacles.forEach(o=>{
-        ctx.fillRect(o.x,o.y,o.w,o.h);
+        if(obsImg.complete){
+            ctx.drawImage(obsImg, o.x, o.y, o.w, o.h);
+        } else {
+            ctx.fillStyle = 'green';
+            ctx.fillRect(o.x,o.y,o.w,o.h);
+        }
     });
 }
 
 function spawnCoin(){
-    coins.push({ x:Math.random()*360+20, y:Math.random()*460+20, r:10 });
+    coins.push({ x:Math.random()*360+20, y:Math.random()*460+20, r:15 });
 }
 
 function spawnObstacle(){
@@ -166,7 +199,6 @@ document.addEventListener('keyup', e=>{
     if(['ArrowLeft','ArrowRight'].includes(e.key)) ball.dx=0;
 });
 
-// Touch buttons
 document.getElementById('upBtn').ontouchstart=()=>ball.dy=-ball.speed;
 document.getElementById('downBtn').ontouchstart=()=>ball.dy=ball.speed;
 document.getElementById('leftBtn').ontouchstart=()=>ball.dx=-ball.speed;

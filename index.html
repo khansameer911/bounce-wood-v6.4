@@ -1,49 +1,38 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bouncewood v6.4</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bouncewood v6.5</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="loadingScreen">
-        <img src="logo.png" alt="Livewood Games" id="logo">
-        <p>Loading...</p>
+<div id="loadingScreen">
+    <img src="logo.png" alt="Livewood Games" id="logo">
+    <p>Loading...</p>
+</div>
+<div id="mainMenu" style="display:none;">
+    <h1>Bouncewood</h1>
+    <button id="startGameBtn">Start Game</button>
+    <button id="howToPlayBtn">How to Play</button>
+    <p id="instructions" style="display:none;">Move the ball, collect coins, avoid obstacles!</p>
+</div>
+<div id="gameContainer" style="display:none;">
+    <p id="score">Score: 0 | Best: 0</p>
+    <p id="timer">Time: 30s</p>
+    <p id="gameOver" style="display:none;">Game Over!</p>
+    <canvas id="gameCanvas"></canvas>
+    <div id="touchControls">
+        <button class="control-btn" id="upBtn">▲</button>
+        <button class="control-btn" id="leftBtn">◀</button>
+        <button class="control-btn" id="downBtn">▼</button>
+        <button class="control-btn" id="rightBtn">▶</button>
     </div>
-
-    <div id="mainMenu" style="display:none;">
-        <h1>Bouncewood</h1>
-        <button id="startGameBtn">Start Game</button>
-        <button id="howToPlayBtn">How to Play</button>
-        <p id="instructions" style="display:none;">
-            🕹 Move the ball, collect coins (+4s), avoid obstacles!<br>
-            🖱 Touch or keyboard controls.
-        </p>
-    </div>
-
-    <div id="gameContainer" style="display:none;">
-        <p id="score">Score: 0 | Best: 0</p>
-        <p id="timer">Time: 30s</p>
-        <p id="gameOver" style="display:none;">Game Over!</p>
-        <canvas id="gameCanvas"></canvas>
-        <div id="touchControls">
-            <div class="control-row">
-                <button class="control-btn" id="upBtn">▲</button>
-            </div>
-            <div class="control-row">
-                <button class="control-btn" id="leftBtn">◀</button>
-                <button class="control-btn" id="downBtn">▼</button>
-                <button class="control-btn" id="rightBtn">▶</button>
-            </div>
-        </div>
-        <button id="restartBtn">Play Again</button>
-    </div>
-
-    <audio id="coinSound" src="coin.mp3"></audio>
-    <audio id="gameOverSound" src="gameover.mp3"></audio>
-    <audio id="bgMusic" src="bgmusic.mp3" loop></audio>
-
-    <script src="script.js"></script>
+    <button id="restartBtn">Play Again</button>
+</div>
+<audio id="coinSound" src="coin.mp3"></audio>
+<audio id="gameOverSound" src="gameover.mp3"></audio>
+<audio id="bgMusic" src="bgmusic.mp3" loop></audio>
+<script src="script.js"></script>
 </body>
 </html>
